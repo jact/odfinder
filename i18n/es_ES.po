@@ -1,0 +1,226 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: odfinder 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-09-08 11:12+0200\n"
+"PO-Revision-Date: 2017-09-08 11:23+0200\n"
+"Last-Translator: Jose Antonio Chavarría <jachavar@gmail.com>\n"
+"Language-Team: Jose Antonio Chavarría <jachavar@gmail.com>\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: ../odfinder/odfinder.py:95
+msgid "Open Document Finder"
+msgstr "Open Document Finder"
+
+#: ../odfinder/odfinder.py:96
+msgid "Searchs content inside OpenOffice/LibreOffice documents"
+msgstr "Busca contenido dentro de documentos de OpenOffice/LibreOffice"
+
+#: ../odfinder/odfinder.py:114 ../data/ui/odfinder.ui:56
+msgid "Path"
+msgstr "Ruta"
+
+#: ../odfinder/odfinder.py:115 ../data/ui/odfinder.ui:107
+msgid "Content"
+msgstr "Contenido"
+
+#: ../odfinder/odfinder.py:116 ../data/ui/odfinder.ui:145
+msgid "Mode"
+msgstr "Modo"
+
+#: ../odfinder/odfinder.py:119 ../odfinder/odfinder.py:305
+msgid "Or"
+msgstr "O"
+
+#: ../odfinder/odfinder.py:120 ../odfinder/odfinder.py:298
+msgid "And"
+msgstr "Y"
+
+#: ../odfinder/odfinder.py:121 ../odfinder/odfinder.py:291
+msgid "Phrase"
+msgstr "Frase"
+
+#: ../odfinder/odfinder.py:131
+msgid "Matches"
+msgstr "Coincidencias"
+
+#: ../odfinder/odfinder.py:185
+#, python-format
+msgid "Error: path %s does not exist"
+msgstr "Error: la ruta %s no existe"
+
+#: ../odfinder/odfinder.py:191
+msgid "Ensure path is correct."
+msgstr "Asegúrese que la ruta es correcta."
+
+#: ../odfinder/odfinder.py:202
+#, python-format
+msgid "Searching in %s..."
+msgstr "Buscando en %s..."
+
+#: ../odfinder/odfinder.py:235
+msgid "Please choose a folder"
+msgstr "Por favor, seleccione un directorio"
+
+#: ../odfinder/odfinder.py:241
+msgid "Select"
+msgstr "Seleccionar"
+
+#: ../odfinder/odfinder.py:260
+#, python-format
+msgid "%d matches in %d files"
+msgstr "%d coincidencias en %d archivos"
+
+#: ../odfinder/odfinder.py:270
+#, python-format
+msgid "%d matches so far in %d files (search stopped)"
+msgstr "%d coincidencias hasta el momento en %d archivos (búsqueda parada)"
+
+#: ../odfinder/odfinder.py:313
+#, python-format
+msgid "Error: unknown search mode '%s'"
+msgstr "Error: modo de búsqueda '%s' desconocido"
+
+#: ../odfinder/odfinder.py:349 ../odfinder/odfinder.py:374
+#: ../odfinder/odfinder.py:399
+#, python-format
+msgid "Warning: %s not found in '%s'"
+msgstr "Aviso: %s no encontrado en '%s'"
+
+#: ../odfinder/odfinder.py:405
+#, python-format
+msgid "Warning: Supposed ZIP file %s could not be opened: %s"
+msgstr "Aviso: el supuesto fichero comprimido %s no pudo ser revisado: %s"
+
+#: ../odfinder/odfinder.py:407
+#, python-format
+msgid "Warning: File %s could not be opened: %s"
+msgstr "Aviso: el fichero %s no pudo ser revisado: %s"
+
+#: ../odfinder/odfinder.py:443
+msgid "path to search (home by default)"
+msgstr "ruta donde buscar (directorio personal por defecto)"
+
+#: ../odfinder/odfinder.py:452
+msgid "search mode (or by default)"
+msgstr "modo de búsqueda (or por defecto)"
+
+#: ../odfinder/odfinder.py:459
+msgid "content to search"
+msgstr "contenido a buscar"
+
+#: ../data/ui/odfinder.ui:77
+msgid "..."
+msgstr "..."
+
+#~ msgid "in %d files"
+#~ msgstr "en %d ficheros"
+
+#~ msgid "Email Notifier"
+#~ msgstr "Notificador de correo"
+
+#~ msgid "Check multiple mail accounts through authenticated POP3 protocol"
+#~ msgstr "Comprueba múltiples cuentas de correo autenticadas mediante protocolo POP3"
+
+#~ msgid "Mail Reader"
+#~ msgstr "Cliente de correo"
+
+#~ msgid "View Summary"
+#~ msgstr "Ver resumen"
+
+#~ msgid "Consider New Mail as Read"
+#~ msgstr "Considerar correo nuevo como leído"
+
+#~ msgid "Update"
+#~ msgstr "Actualizar"
+
+#~ msgid "Preferences..."
+#~ msgstr "Preferencias..."
+
+#~ msgid "About"
+#~ msgstr "Acerca de"
+
+#~ msgid "Mailboxes:"
+#~ msgstr "Buzones:"
+
+#~ msgid "Error in Mailbox %s: %s"
+#~ msgstr "Error en el buzón %s: %s"
+
+#~ msgid "New Messages in Mailbox %s: %d"
+#~ msgstr "Nuevos mensajes en el buzón %s: %d"
+
+#~ msgid "New Messages in Mailbox: %s (%d)"
+#~ msgstr "Nuevos mensajes en el buzón %s (%d)"
+
+#~ msgid "From: %s"
+#~ msgstr "De: %s"
+
+#~ msgid "Subject: %s"
+#~ msgstr "Asunto: %s"
+
+#~ msgid "Sent: %s"
+#~ msgstr "Enviado: %s"
+
+#~ msgid "No Mail Accounts Configured"
+#~ msgstr "No hay cuentas de correo configuradas"
+
+#~ msgid "You have %d new messages"
+#~ msgstr "Tiene %d mensajes nuevos"
+
+#~ msgid "Summary Email"
+#~ msgstr "Resumen de correo"
+
+#~ msgid "Hide"
+#~ msgstr "Ocultar"
+
+#~ msgid "Mailbox Properties"
+#~ msgstr "Propiedades del buzón"
+
+#~ msgid "New Mailbox"
+#~ msgstr "Nuevo buzón"
+
+#~ msgid "Mail Notification Preferences"
+#~ msgstr "Preferencias del notificador de correo"
+
+#~ msgid "<span weight=\"bold\">Mailbox List</span>"
+#~ msgstr "<span weight=\"bold\">Lista de buzones</span>"
+
+#~ msgid "<span weight=\"bold\">General</span>"
+#~ msgstr "<span weight=\"bold\">General</span>"
+
+#~ msgid "Mail server:"
+#~ msgstr "Servidor de correo:"
+
+#~ msgid "Port:"
+#~ msgstr "Puerto:"
+
+#~ msgid "Username:"
+#~ msgstr "Usuario:"
+
+#~ msgid "Password:"
+#~ msgstr "Contraseña:"
+
+#~ msgid "General"
+#~ msgstr "General"
+
+#~ msgid "<span weight=\"bold\">Mailbox Name</span>"
+#~ msgstr "<span weight=\"bold\">Nombre del buzón</span>"
+
+#~ msgid "_Default"
+#~ msgstr "Por _defecto"
+
+#~ msgid "_Other:"
+#~ msgstr "_Otro:"
+
+#~ msgid "Details"
+#~ msgstr "Detalles"

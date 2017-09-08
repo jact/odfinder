@@ -1,0 +1,15 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Open Document Finder
+Comment=Searchs content inside OpenOffice/LibreOffice documents
+Comment[es]=Busca contenido dentro de documentos de OpenOffice/LibreOffice
+Icon=odfinder
+Exec=odfinder
+Terminal=false
+Type=Application
+Categories=Utilities;Office;
+StartupNotify=true
+X-GNOME-Autostart-Notify=true
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-after=panel
+Hidden=false
