@@ -17,20 +17,17 @@
 
 import os
 import sys
-import locale
 import argparse
-import time
 import re
 import locale
 import zipfile
 
 from subprocess import Popen
-from email import parser as email_parser, header, utils
 
 import gi
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import GObject, Gtk, Gdk, Gio, GLib
+from gi.repository import Gtk, Gdk, Gio, GLib
 
 from .utils import get_ui_resource, remove_xml_markup, get_filename_ext
 
@@ -382,7 +379,7 @@ class ODFinderApp(object):
         return False
 
     def recursive_search(self, job, cancellable, directory):
-        for root, dirs, files in os.walk(directory):
+        for root, _, files in os.walk(directory):
             for file_ in files:
                 if self.cancellable.is_cancelled():
                     self.cancellable.reset()
