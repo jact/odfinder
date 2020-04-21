@@ -36,7 +36,7 @@ _ = gettext.gettext
 
 __author__ = ['Jose Antonio Chavarría <jachavar@gmail.com>']
 __license__ = 'GPLv3'
-__copyright__ = '(C) 2017 %s' % (', '.join(__author__))
+__copyright__ = '(C) 2017-2020 {}'.format(', '.join(__author__))
 
 version_file = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
@@ -264,7 +264,7 @@ class ODFinderApp(object):
             if regex.search(text):
                 return True
         else:
-            parts = re.split("\s+", query.strip())
+            parts = re.split(r"\s+", query.strip())
             if mode == _("And") or mode == 'and':
                 # match only documents that contain all words
                 for part in parts:
@@ -307,13 +307,13 @@ class ODFinderApp(object):
                     archives = zf.namelist()
                     for item in archives:
                         if item.endswith("content.xml"):
-                            content += zf.read(item)
+                            content += zf.read(item).decode()
 
                         if item.endswith("document.xml"):
-                            content += zf.read(item)
+                            content += zf.read(item).decode()
 
                     content = remove_xml_markup(content)
-                    doc_info = remove_xml_markup(zf.read("meta.xml"))
+                    doc_info = remove_xml_markup(zf.read("meta.xml").decode())
                     self.ooo_count += 1
                 except KeyError as err:
                     print(_("Warning: %s not found in '%s'") % (err, filename))
@@ -332,13 +332,13 @@ class ODFinderApp(object):
                     archives = zf.namelist()
                     for item in archives:
                         if item.endswith("document.xml"):
-                            content += zf.read(item)
+                            content += zf.read(item).decode()
 
                         if item.endswith("sharedStrings.xml"):
-                            content += zf.read(item)
+                            content += zf.read(item).decode()
 
                     content = remove_xml_markup(content)
-                    doc_info = remove_xml_markup(zf.read("docProps/core.xml"))
+                    doc_info = remove_xml_markup(zf.read("docProps/core.xml").decode())
                     self.ooo_count += 1
                 except KeyError as err:
                     print(_("Warning: %s not found in '%s'") % (err, filename))
@@ -360,10 +360,10 @@ class ODFinderApp(object):
 
                     content = ''
                     for item in slides:
-                        content += zf.read(item)
+                        content += zf.read(item).decode()
 
                     content = remove_xml_markup(content)
-                    doc_info = remove_xml_markup(zf.read("docProps/core.xml"))
+                    doc_info = remove_xml_markup(zf.read("docProps/core.xml").decode())
                     self.ooo_count += 1
                 except KeyError as err:
                     print(_("Warning: %s not found in '%s'") % (err, filename))
