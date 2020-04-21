@@ -1,13 +1,13 @@
 To install it, make sure you have these programs installed:
 
-    * Python >= 2.7
-    * python-gi
-    * python-setuptools
-    * python-stdeb (to create a DEB package)
+    * Python >= 3.3
+    * python3-gi
+    * python3-setuptools
+    * python3-stdeb (to create a DEB package)
 
 Then, create package through this command:
 
-    $ python setup.py --command-packages=stdeb.command bdist_deb
+    $ python3 setup.py --command-packages=stdeb.command bdist_deb
 
 And finally, install package:
 
