@@ -24,7 +24,7 @@ Requirements
 ============
 
     * Linux system with Gnome or Unity Desktop
-    * Python >= 2.7
+    * Python >= 3.3
     * PyGtk 3 >= 3.10
 
 
