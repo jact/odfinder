@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-# Copyright (c) 2017 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2020 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 import glob
 import subprocess
 
@@ -41,7 +41,7 @@ class BuildData(build):
 
         for po in glob.glob(os.path.join(PO_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
-            mo = os.path.join(MO_DIR, lang, '%s.mo' % APP_NAME)
+            mo = os.path.join(MO_DIR, lang, '{}.mo'.format(APP_NAME))
 
             directory = os.path.dirname(mo)
             if not os.path.exists(directory):
@@ -54,7 +54,7 @@ class BuildData(build):
                     rc = subprocess.call(['msgfmt', '-o', mo, po])
                     if rc != 0:
                         raise Warning("msgfmt returned %d" % rc)
-                except Exception, e:
+                except Exception as e:
                     error("Building gettext files failed.  Try setup.py \
                         --without-gettext [build|install]")
                     error("Error: %s" % str(e))
@@ -66,7 +66,7 @@ class InstallData(install_data):
     def _find_mo_files():
         data_files = []
 
-        for mo in glob.glob(os.path.join(MO_DIR, '*', '%s.mo' % APP_NAME)):
+        for mo in glob.glob(os.path.join(MO_DIR, '*', '{}.mo'.format(APP_NAME))):
             lang = os.path.basename(os.path.dirname(mo))
             target = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
             data_files.append((target, [mo]))
@@ -103,6 +103,7 @@ setup(
     author='Jose Antonio Chavarría',
     author_email='jachavar@gmail.com',
     license='GPLv3',
+    url='https://github.com/jact/odfinder',
     platforms=['Linux'],
     description='Searchs content inside OpenOffice/LibreOffice documents',
     long_description=README,
