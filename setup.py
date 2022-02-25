@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Copyright (c) 2017-2020 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2022 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,12 +27,17 @@ from distutils.log import info, error
 from distutils.dep_util import newer
 
 PATH = os.path.dirname(os.path.abspath(__file__))
-README = open(os.path.join(PATH, 'README.md')).read()
-VERSION = open(os.path.join(PATH, 'VERSION')).read().strip()
-APP_NAME = 'odfinder'
+with open(os.path.join(PATH, 'README.md'), encoding='utf_8') as f:
+    README = f.read()
+with open(os.path.join(PATH, 'VERSION'), encoding='utf_8') as f:
+    VERSION = f.read().strip()
 
+APP_NAME = 'odfinder'
 PO_DIR = 'i18n'
 MO_DIR = os.path.join('build', 'mo')
+
+if not hasattr(sys, 'version_info') or sys.version_info < (3, 6, 0, 'final'):
+    raise SystemExit(f'{APP_NAME} requires Python 3.6 or later.')
 
 
 class BuildData(build):
@@ -41,23 +46,23 @@ class BuildData(build):
 
         for po in glob.glob(os.path.join(PO_DIR, '*.po')):
             lang = os.path.basename(po[:-3])
-            mo = os.path.join(MO_DIR, lang, '{}.mo'.format(APP_NAME))
+            mo = os.path.join(MO_DIR, lang, f'{APP_NAME}.mo')
 
             directory = os.path.dirname(mo)
             if not os.path.exists(directory):
-                info('creating %s' % directory)
+                info(f'creating {directory}')
                 os.makedirs(directory)
 
             if newer(po, mo):
-                info('compiling %s -> %s' % (po, mo))
+                info(f'compiling {po} -> {mo}')
                 try:
                     rc = subprocess.call(['msgfmt', '-o', mo, po])
                     if rc != 0:
-                        raise Warning("msgfmt returned %d" % rc)
+                        raise Warning(f'msgfmt returned {rc}')
                 except Exception as e:
                     error("Building gettext files failed.  Try setup.py \
                         --without-gettext [build|install]")
-                    error("Error: %s" % str(e))
+                    error(f'Error: {e}')
                     sys.exit(1)
 
 
@@ -66,7 +71,7 @@ class InstallData(install_data):
     def _find_mo_files():
         data_files = []
 
-        for mo in glob.glob(os.path.join(MO_DIR, '*', '{}.mo'.format(APP_NAME))):
+        for mo in glob.glob(os.path.join(MO_DIR, '*', f'{APP_NAME}.mo')):
             lang = os.path.basename(os.path.dirname(mo))
             target = os.path.join('share', 'locale', lang, 'LC_MESSAGES')
             data_files.append((target, [mo]))
