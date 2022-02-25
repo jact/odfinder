@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2017 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2022 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ def get_ui_resource(name):
     if os.path.exists(_file):
         return _file
 
-    return '../data/ui/{}'.format(name)
+    return f'../data/ui/{name}'
 
 
 def remove_xml_markup(s, replace_with_space=False):
