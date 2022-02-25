@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2017 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2022 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ _ = gettext.gettext
 
 __author__ = ['Jose Antonio Chavarría <jachavar@gmail.com>']
 __license__ = 'GPLv3'
-__copyright__ = '(C) 2017-2020 {}'.format(', '.join(__author__))
+__copyright__ = f'(C) 2017-2020 {", ".join(__author__)}'
 
 version_file = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
@@ -78,7 +78,7 @@ class ODFinderApp(object):
             return
 
         self.builder = Gtk.Builder()
-        self.builder.add_from_file(get_ui_resource('{}.ui'.format(self.APP_DIALOG_ID)))
+        self.builder.add_from_file(get_ui_resource(f'{self.APP_DIALOG_ID}.ui'))
         self.builder.connect_signals(self)
 
         self.builder.get_object('lbl_path').set_text(_('Path'))
@@ -157,9 +157,7 @@ class ODFinderApp(object):
                 self.dialog, 0, Gtk.MessageType.ERROR,
                 Gtk.ButtonsType.OK, msg
             )
-            dialog.format_secondary_text(
-                _("Ensure path is correct.")
-            )
+            dialog.format_secondary_text(_("Ensure path is correct."))
             dialog.run()
             dialog.destroy()
         else:
@@ -319,7 +317,7 @@ class ODFinderApp(object):
                     print(_("Warning: %s not found in '%s'") % (err, filename))
                     return None
 
-                return self.match('{} {}'.format(content.lower(), doc_info.lower()))
+                return self.match(f'{content.lower()} {doc_info.lower()}')
 
             # Handle MS-Office (>= 2007) files:
             if ext in (
@@ -344,7 +342,7 @@ class ODFinderApp(object):
                     print(_("Warning: %s not found in '%s'") % (err, filename))
                     return None
 
-                return self.match('{} {}'.format(content.lower(), doc_info.lower()))
+                return self.match(f'{content.lower()} {doc_info.lower()}')
 
             # Handle MS-Office (>= 2007) MS-PowerPoint files:
             if ext in (
@@ -369,7 +367,7 @@ class ODFinderApp(object):
                     print(_("Warning: %s not found in '%s'") % (err, filename))
                     return None
 
-                return self.match('{} {}'.format(content.lower(), doc_info.lower()))
+                return self.match(f'{content.lower()} {doc_info.lower()}')
 
         except zipfile.BadZipfile as err:
             print(_("Warning: Supposed ZIP file %s could not be opened: %s") % (filename, str(err)))
