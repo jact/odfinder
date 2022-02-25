@@ -51,7 +51,8 @@ if not os.path.exists(version_file):
         'VERSION'
     )
 
-__version__ = open(version_file).read().strip()
+with open(version_file, encoding='utf_8') as f:
+    __version__ = f.read().strip()
 
 
 def idle_add_decorator(func):
