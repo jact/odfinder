@@ -60,7 +60,7 @@ def idle_add_decorator(func):
     return callback
 
 
-class ODFinderApp(object):
+class ODFinderApp:
     APP_DIALOG_ID = 'odfinder'
     APP_NAME = _('Open Document Finder')
     APP_DESCRIPTION = _('Searchs content inside OpenOffice/LibreOffice documents')
