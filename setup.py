@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-# Copyright (c) 2017-2022 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2026 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,24 +20,18 @@ import sys
 import glob
 import subprocess
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
 from distutils.log import info, error
 from distutils.dep_util import newer
 
-PATH = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(PATH, 'README.md'), encoding='utf_8') as f:
-    README = f.read()
-with open(os.path.join(PATH, 'VERSION'), encoding='utf_8') as f:
-    VERSION = f.read().strip()
-
 APP_NAME = 'odfinder'
 PO_DIR = 'i18n'
 MO_DIR = os.path.join('build', 'mo')
 
-if not hasattr(sys, 'version_info') or sys.version_info < (3, 6, 0, 'final'):
-    raise SystemExit(f'{APP_NAME} requires Python 3.6 or later.')
+if not hasattr(sys, 'version_info') or sys.version_info < (3, 10, 0, 'final'):
+    raise SystemExit(f'{APP_NAME} requires Python 3.10 or later.')
 
 
 class BuildData(build):
@@ -84,16 +78,12 @@ class InstallData(install_data):
 
 
 setup(
-    name=APP_NAME,
-    version=VERSION,
-    packages=find_packages(),
     data_files=[
         ('share/odfinder/ui', [
             'data/ui/odfinder.ui',
         ]),
         ('share/doc/odfinder', [
             'AUTHORS',
-            'INSTALL',
             'LICENSE',
             'README.md',
             'VERSION',
@@ -104,30 +94,5 @@ setup(
     cmdclass={
         'build': BuildData,
         'install_data': InstallData,
-    },
-    author='Jose Antonio Chavarría',
-    author_email='jachavar@gmail.com',
-    license='GPLv3',
-    url='https://github.com/jact/odfinder',
-    platforms=['Linux'],
-    description='Searchs content inside OpenOffice/LibreOffice documents',
-    long_description=README,
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: X11 Applications :: Gnome',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-        'Natural Language :: English',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Topic :: Utilities',
-        'Topic :: Desktop Environment :: Gnome',
-        'Topic :: Office/Business :: Office Suites',
-    ],
-    entry_points={
-        'console_scripts': [
-            'odfinder=odfinder.command_line:main'
-        ],
     },
 )
