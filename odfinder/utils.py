@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2017-2022 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2026 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,31 +16,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
 import re
+import sys
+
+_RE_COMMENTS = re.compile('<!--.*?-->', re.DOTALL)
+_RE_TAGS = re.compile('<[^>]*>', re.DOTALL)
+
+_PKG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_ui_resource(name):
-    _file = os.path.join(
-        sys.prefix, 'share', 'odfinder', 'ui', name
-    )
-    if os.path.exists(_file):
-        return _file
+    installed = os.path.join(sys.prefix, 'share', 'odfinder', 'ui', name)
+    if os.path.exists(installed):
+        return installed
 
-    return f'../data/ui/{name}'
+    return os.path.join(_PKG_DIR, 'data', 'ui', name)
 
 
 def remove_xml_markup(s, replace_with_space=False):
-    s = re.compile("<!--.*?-->", re.DOTALL).sub('', s)
-    char = ' ' if replace_with_space else ''
-    s = re.compile("<[^>]*>", re.DOTALL).sub(char, s)
-
+    s = _RE_COMMENTS.sub('', s)
+    s = _RE_TAGS.sub(' ' if replace_with_space else '', s)
     return s
 
 
 def get_filename_ext(filename):
     _, ext = os.path.splitext(filename)
-    if ext:
-        return ext.split('.')[-1]
-
-    return ''
+    return ext.lstrip('.').lower()

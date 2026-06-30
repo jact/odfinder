@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2017-2022 Jose Antonio Chavarría <jachavar@gmail.com>
+# Copyright (c) 2017-2026 Jose Antonio Chavarría <jachavar@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,28 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import sys
 import argparse
-import re
 import locale
+import os
+import re
+import sys
 import zipfile
-
 from subprocess import Popen
 
 import gi
-gi.require_version('Gtk', '3.0')
 
-from gi.repository import Gtk, Gdk, Gio, GLib
+gi.require_version('Gdk', '4.0')
+gi.require_version('Gtk', '4.0')
 
-from .utils import get_ui_resource, remove_xml_markup, get_filename_ext
+import gettext  # noqa: E402
 
-import gettext
+from gi.repository import Gdk, Gio, GLib, Gtk  # noqa: E402
+
+from .utils import get_filename_ext, get_ui_resource, remove_xml_markup  # noqa: E402
+
 _ = gettext.gettext
 
 __author__ = ['Jose Antonio Chavarría <jachavar@gmail.com>']
 __license__ = 'GPLv3'
-__copyright__ = f'(C) 2017-2020 {", ".join(__author__)}'
+__copyright__ = f'(C) 2017-2026 {", ".join(__author__)}'
 
 version_file = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
@@ -57,41 +59,42 @@ with open(version_file, encoding='utf_8') as f:
 
 def idle_add_decorator(func):
     def callback(*args):
-        GLib.idle_add(func, *args)
+        def wrapper(*wargs):
+            func(*wargs)
+            return False
+        GLib.idle_add(wrapper, *args)
     return callback
 
 
-class ODFinderApp:
+class ODFinderApp(Gtk.Application):
     APP_DIALOG_ID = 'odfinder'
     APP_NAME = _('Open Document Finder')
     APP_DESCRIPTION = _('Searchs content inside OpenOffice/LibreOffice documents')
     APP_ICON = 'odfinder'
 
     def __init__(self, options):
+        super().__init__(application_id='org.gnome.odfinder')
         self.stopped = False
         self.cancellable = Gio.Cancellable()
         self.ooo_count = 0
         self.match_count = 0
+        self.warnings = []
 
         self.options = options
         self.console = (self.options['content'] != [])
-        if self.console:
-            return
 
+    def do_activate(self):
         self.builder = Gtk.Builder()
         self.builder.add_from_file(get_ui_resource(f'{self.APP_DIALOG_ID}.ui'))
-        self.builder.connect_signals(self)
 
-        self.builder.get_object('lbl_path').set_text(_('Path'))
-        self.builder.get_object('lbl_content').set_text(_('Content'))
-        self.builder.get_object('lbl_mode').set_text(_('Mode'))
+        self.builder.get_object('lbl_path').set_text_with_mnemonic(_('_Path'))
+        self.builder.get_object('lbl_content').set_text_with_mnemonic(_('C_ontent'))
+        self.builder.get_object('lbl_mode').set_text_with_mnemonic(_('_Mode'))
 
-        modes = Gtk.ListStore(str)
-        modes.append([_('Or')])
-        modes.append([_('And')])
-        modes.append([_('Phrase')])
         cbb_mode = self.builder.get_object('cbb_mode')
-        cbb_mode.set_model(modes)
+        cbb_mode.append_text(_('Or'))
+        cbb_mode.append_text(_('And'))
+        cbb_mode.append_text(_('Phrase'))
         cbb_mode.set_active(0)
 
         self.matches = Gtk.ListStore(str)
@@ -99,43 +102,64 @@ class ODFinderApp:
         self.tree_matches.set_model(self.matches)
 
         cell_renderer_text = Gtk.CellRendererText()
-        tree_view_column = Gtk.TreeViewColumn(_('Matches'))
+        tree_view_column = Gtk.TreeViewColumn(title=_('Matches'))
         self.tree_matches.append_column(tree_view_column)
         tree_view_column.pack_start(cell_renderer_text, True)
         tree_view_column.add_attribute(cell_renderer_text, 'text', 0)
 
         self.dialog = self.builder.get_object('window1')
-        self.dialog.set_icon_name(self.APP_ICON)
         self.dialog.set_title(self.APP_NAME)
-        self.dialog.set_position(Gtk.WindowPosition.CENTER)
-        self.builder.get_object('btn_stop').set_sensitive(False)
-        self.dialog.show_all()
+        self.dialog.set_icon_name(self.APP_ICON)
+        self.add_window(self.dialog)
 
         self.btn_search = self.builder.get_object('btn_search')
-        self.btn_search.set_can_default(True)
-        self.btn_search.grab_default()
-        self.dialog.set_default(self.btn_search)
         self.btn_stop = self.builder.get_object('btn_stop')
+        self.btn_stop.set_sensitive(False)
 
-        self.builder.get_object('txt_path').set_text(options['path'])
+        # Connect signals manually for GTK 4 compatibility
+        self.dialog.connect('close-request', self.on_window1_close_request)
+        self.btn_search.connect('clicked', self.on_btn_search_clicked)
+        self.btn_stop.connect('clicked', self.on_btn_stop_clicked)
+        self.builder.get_object('btn_about').connect('clicked', self.on_btn_about_clicked)
+        self.builder.get_object('btn_exit').connect('clicked', self.on_btn_exit_clicked)
+        self.builder.get_object('btn_path').connect('clicked', self.on_btn_path_clicked)
+        self.tree_matches.connect('row-activated', self.on_tree_matches_row_activated)
+
+        self.btn_warnings = self.builder.get_object('btn_warnings')
+        self.btn_warnings.connect('clicked', self.on_btn_warnings_clicked)
+
+        # Event controller for keyboard events (Escape to quit)
+        evk = Gtk.EventControllerKey.new()
+        evk.connect('key-pressed', self.on_window1_key_pressed)
+        self.dialog.add_controller(evk)
+
+        self.dialog.set_default_widget(self.btn_search)
+
+        self.builder.get_object('txt_path').set_text(self.options['path'])
         self.builder.get_object('txt_content').grab_focus()
 
         self.builder.get_object('txt_path').set_activates_default(True)
         self.builder.get_object('txt_content').set_activates_default(True)
 
-    def on_window1_delete_event(self, *args):
-        Gtk.main_quit()
+        self.dialog.present()
 
-    def on_window1_key_press_event(self, widget, event):
-        if event.keyval == Gdk.KEY_Escape:
-            self.on_window1_delete_event(self)
+    def on_window1_close_request(self, window):
+        self.quit()
+        return True
+
+    def on_window1_key_pressed(self, controller, keyval, keycode, state):
+        if keyval == Gdk.KEY_Escape:
+            self.quit()
+            return True
+        return False
 
     def on_btn_exit_clicked(self, widget):
-        Gtk.main_quit()
+        self.quit()
 
     def on_tree_matches_row_activated(self, tree_view, path, column):
         (model, iter_) = tree_view.get_selection().get_selected()
-        Popen(['xdg-open', model[iter_][0]])
+        if iter_:
+            Popen(['xdg-open', model[iter_][0]])
 
     @idle_add_decorator
     def on_btn_stop_clicked(self, widget):
@@ -149,26 +173,29 @@ class ODFinderApp:
     def on_btn_search_clicked(self, widget):
         self.ooo_count = 0
         self.match_count = 0
+        self.warnings.clear()
+        self.btn_warnings.set_visible(False)
 
         self.matches.clear()
         path = self.builder.get_object('txt_path').get_text()
         if not os.path.exists(path):
             msg = _('Error: path %s does not exist') % path
             dialog = Gtk.MessageDialog(
-                self.dialog, 0, Gtk.MessageType.ERROR,
-                Gtk.ButtonsType.OK, msg
+                transient_for=self.dialog,
+                modal=True,
+                message_type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                text=msg
             )
-            dialog.format_secondary_text(_("Ensure path is correct."))
-            dialog.run()
-            dialog.destroy()
+            dialog.format_secondary_text(_('Ensure path is correct.'))
+            dialog.connect('response', lambda d, r: d.destroy())
+            dialog.present()
         else:
             self.btn_search.set_sensitive(False)
             self.btn_stop.set_sensitive(True)
 
-            status_bar = self.builder.get_object('sb')
-            context = status_bar.get_context_id("example")
-
-            status_bar.push(context, _("Searching in %s...") % path)
+            lbl_status = self.builder.get_object('lbl_status')
+            lbl_status.set_text(_('Searching in %s...') % path)
             GLib.idle_add(
                 self.schedule_search,
                 path
@@ -181,74 +208,96 @@ class ODFinderApp:
             GLib.PRIORITY_DEFAULT_IDLE,
             self.cancellable
         )
+        return False
 
     @idle_add_decorator
     def on_btn_about_clicked(self, widget):
         about = Gtk.AboutDialog(transient_for=self.dialog)
-
-        about.set_destroy_with_parent(True)
         about.set_program_name(self.APP_NAME)
         about.set_comments(self.APP_DESCRIPTION)
         about.set_version(__version__)
-        about.set_icon_name(self.APP_ICON)
         about.set_logo_icon_name(self.APP_ICON)
-        about.set_name(__file__)
         about.set_copyright(__copyright__)
         about.set_authors(__author__)
-
-        about.run()
-        about.destroy()
+        about.present()
 
     def on_btn_path_clicked(self, widget):
-        dialog = Gtk.FileChooserDialog(
-            _("Please choose a folder"),
-            self.dialog,
-            Gtk.FileChooserAction.SELECT_FOLDER,
-            (
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                _("Select"),
-                Gtk.ResponseType.OK
-            )
-        )
-        dialog.set_default_size(800, 400)
-        dialog.set_destroy_with_parent(True)
+        dialog = Gtk.FileDialog.new()
+        dialog.set_title(_('Please choose a folder'))
 
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            txt_path = self.builder.get_object('txt_path')
-            txt_path.set_text(dialog.get_filename())
-        dialog.destroy()
+        initial_path = self.builder.get_object('txt_path').get_text()
+        if os.path.exists(initial_path):
+            dialog.set_initial_folder(Gio.File.new_for_path(initial_path))
 
+        dialog.select_folder(self.dialog, None, self.on_folder_selected)
+
+    def on_folder_selected(self, dialog, result):
+        try:
+            folder = dialog.select_folder_finish(result)
+            if folder:
+                txt_path = self.builder.get_object('txt_path')
+                txt_path.set_text(folder.get_path())
+        except Exception:
+            pass
         self.builder.get_object('txt_content').grab_focus()
 
     @idle_add_decorator
     def search_completed(self):
-        status_bar = self.builder.get_object('sb')
-        context = status_bar.get_context_id("example")
-        msg = _("%d matches in %d files") % (self.match_count, self.ooo_count)
-        status_bar.push(context, msg)
+        lbl_status = self.builder.get_object('lbl_status')
+        msg = _('%d matches in %d files') % (self.match_count, self.ooo_count)
+        lbl_status.set_text(msg)
 
         self.btn_search.set_sensitive(True)
         self.btn_stop.set_sensitive(False)
+
+        if self.warnings:
+            self.btn_warnings.set_visible(True)
+            self.btn_warnings.set_label(_("Warnings (%d)") % len(self.warnings))
+        else:
+            self.btn_warnings.set_visible(False)
 
     @idle_add_decorator
     def search_cancelled(self):
-        status_bar = self.builder.get_object('sb')
-        context = status_bar.get_context_id("example")
-        msg = _("%d matches so far in %d files (search stopped)") % (
+        lbl_status = self.builder.get_object('lbl_status')
+        msg = _('%d matches so far in %d files (search stopped)') % (
             self.match_count,
             self.ooo_count,
         )
-        status_bar.push(context, msg)
+        lbl_status.set_text(msg)
         self.btn_search.set_sensitive(True)
         self.btn_stop.set_sensitive(False)
+
+        if self.warnings:
+            self.btn_warnings.set_visible(True)
+            self.btn_warnings.set_label(_("Warnings (%d)") % len(self.warnings))
+        else:
+            self.btn_warnings.set_visible(False)
+
+    @idle_add_decorator
+    def on_btn_warnings_clicked(self, widget):
+        dialog = Gtk.MessageDialog(
+            transient_for=self.dialog,
+            modal=True,
+            message_type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK,
+            text=_('Warnings Log')
+        )
+        log_content = "\n".join(self.warnings[:30])
+        if len(self.warnings) > 30:
+            log_content += "\n..." + _("and %d more warnings") % (len(self.warnings) - 30)
+        dialog.format_secondary_text(log_content)
+        dialog.connect('response', lambda d, r: d.destroy())
+        dialog.present()
 
     def add_line_to_results(self, line):
         if self.console:
             print(line)
         else:
-            self.matches.append([line])
+            GLib.idle_add(self._append_to_matches, line)
+
+    def _append_to_matches(self, line):
+        self.matches.append([line])
+        return False
 
     def match(self, text):
         mode = self.options['mode']
@@ -257,22 +306,19 @@ class ODFinderApp:
             mode = self.builder.get_object('cbb_mode').get_active_text()
             query = self.builder.get_object('txt_content').get_text()
 
-        if mode == _("Phrase") or mode == 'phrase':
-            # match only documents that contain the phrase
+        if mode == _('Phrase') or mode == 'phrase':
             regex = re.compile(re.escape(query.lower()), re.DOTALL)
             if regex.search(text):
                 return True
         else:
-            parts = re.split(r"\s+", query.strip())
-            if mode == _("And") or mode == 'and':
-                # match only documents that contain all words
+            parts = re.split(r'\s+', query.strip())
+            if mode == _('And') or mode == 'and':
                 for part in parts:
                     regex = re.compile(re.escape(part.lower()), re.DOTALL)
                     if not regex.search(text):
                         return False
                 return True
-            elif mode == _("Or") or mode == 'or':
-                # match documents that contain at least one word
+            elif mode == _('Or') or mode == 'or':
                 for part in parts:
                     regex = re.compile(re.escape(part.lower()), re.DOTALL)
                     if regex.search(text):
@@ -288,92 +334,102 @@ class ODFinderApp:
         try:
             # Handle OpenOffice.org files:
             if ext in (
-                'sxw', 'stw',  # OOo   1.x swriter
-                'sxc', 'stc',  # OOo   1.x scalc
-                'sxi', 'sti',  # OOo   1.x simpress
-                'sxg',         # OOo   1.x master document
-                'sxm',         # OOo   1.x formula
-                'sxd', 'std',  # OOo   1.x sdraw
-                'odt', 'ott',  # OOo > 2.x swriter
-                'odp', 'otp',  # OOo > 2.x simpress
-                'odf',         # OOo > 2.x formula
-                'odg', 'otg',  # OOo > 2.x sdraw
-                'ods', 'ots',  # OOo > 2.x scalc
+                'sxw', 'stw',
+                'sxc', 'stc',
+                'sxi', 'sti',
+                'sxg',
+                'sxm',
+                'sxd', 'std',
+                'odt', 'ott',
+                'odp', 'otp',
+                'odf',
+                'odg', 'otg',
+                'ods', 'ots',
             ) and zipfile.is_zipfile(filename):
-                zf = zipfile.ZipFile(filename)
-                content = ''
-                try:
-                    archives = zf.namelist()
-                    for item in archives:
-                        if item.endswith("content.xml"):
-                            content += zf.read(item).decode()
+                with zipfile.ZipFile(filename) as zf:
+                    content = ''
+                    try:
+                        archives = zf.namelist()
+                        for item in archives:
+                            if item.endswith('content.xml'):
+                                content += zf.read(item).decode()
 
-                        if item.endswith("document.xml"):
-                            content += zf.read(item).decode()
+                            if item.endswith('document.xml'):
+                                content += zf.read(item).decode()
 
-                    content = remove_xml_markup(content)
-                    doc_info = remove_xml_markup(zf.read("meta.xml").decode())
-                    self.ooo_count += 1
-                except KeyError as err:
-                    print(_("Warning: %s not found in '%s'") % (err, filename))
-                    return None
+                        content = remove_xml_markup(content)
+                        doc_info = remove_xml_markup(zf.read('meta.xml').decode())
+                        self.ooo_count += 1
+                    except KeyError as err:
+                        msg = _("Warning: %s not found in '%s'") % (err, filename)
+                        print(msg)
+                        self.warnings.append(msg)
+                        return None
 
-                return self.match(f'{content.lower()} {doc_info.lower()}')
+                    return self.match(f'{content.lower()} {doc_info.lower()}')
 
             # Handle MS-Office (>= 2007) files:
             if ext in (
-                'docx', 'dotx',  # MS-Word Documents >= 2007
-                'xlsx', 'xltx',  # MS-Excel-Documents >= 2007
+                'docx', 'dotx',
+                'xlsx', 'xltx',
             ) and zipfile.is_zipfile(filename):
-                zf = zipfile.ZipFile(filename)
-                content = ''
-                try:
-                    archives = zf.namelist()
-                    for item in archives:
-                        if item.endswith("document.xml"):
-                            content += zf.read(item).decode()
+                with zipfile.ZipFile(filename) as zf:
+                    content = ''
+                    try:
+                        archives = zf.namelist()
+                        for item in archives:
+                            if item.endswith('document.xml'):
+                                content += zf.read(item).decode()
 
-                        if item.endswith("sharedStrings.xml"):
-                            content += zf.read(item).decode()
+                            if item.endswith('sharedStrings.xml'):
+                                content += zf.read(item).decode()
 
-                    content = remove_xml_markup(content)
-                    doc_info = remove_xml_markup(zf.read("docProps/core.xml").decode())
-                    self.ooo_count += 1
-                except KeyError as err:
-                    print(_("Warning: %s not found in '%s'") % (err, filename))
-                    return None
+                        content = remove_xml_markup(content)
+                        doc_info = remove_xml_markup(zf.read('docProps/core.xml').decode())
+                        self.ooo_count += 1
+                    except KeyError as err:
+                        msg = _("Warning: %s not found in '%s'") % (err, filename)
+                        print(msg)
+                        self.warnings.append(msg)
+                        return None
 
-                return self.match(f'{content.lower()} {doc_info.lower()}')
+                    return self.match(f'{content.lower()} {doc_info.lower()}')
 
             # Handle MS-Office (>= 2007) MS-PowerPoint files:
             if ext in (
-                'pptx',  # MS-PowerPoint-Documents >= 2007
+                'pptx',
             ) and zipfile.is_zipfile(filename):
-                zf = zipfile.ZipFile(filename)
-                try:
-                    archives = zf.namelist()
-                    slides = []
-                    for item in archives:
-                        if item[4:12] == "slides/s":
-                            slides.append(item)
+                with zipfile.ZipFile(filename) as zf:
+                    try:
+                        archives = zf.namelist()
+                        slides = []
+                        for item in archives:
+                            if len(item) >= 12 and item[4:12] == 'slides/s':
+                                slides.append(item)
 
-                    content = ''
-                    for item in slides:
-                        content += zf.read(item).decode()
+                        content = ''
+                        for item in slides:
+                            content += zf.read(item).decode()
 
-                    content = remove_xml_markup(content)
-                    doc_info = remove_xml_markup(zf.read("docProps/core.xml").decode())
-                    self.ooo_count += 1
-                except KeyError as err:
-                    print(_("Warning: %s not found in '%s'") % (err, filename))
-                    return None
+                        content = remove_xml_markup(content)
+                        doc_info = remove_xml_markup(zf.read('docProps/core.xml').decode())
+                        self.ooo_count += 1
+                    except KeyError as err:
+                        msg = _("Warning: %s not found in '%s'") % (err, filename)
+                        print(msg)
+                        self.warnings.append(msg)
+                        return None
 
-                return self.match(f'{content.lower()} {doc_info.lower()}')
+                    return self.match(f'{content.lower()} {doc_info.lower()}')
 
         except zipfile.BadZipfile as err:
-            print(_("Warning: Supposed ZIP file %s could not be opened: %s") % (filename, str(err)))
+            msg = _('Warning: Supposed ZIP file %s could not be opened: %s') % (filename, str(err))
+            print(msg)
+            self.warnings.append(msg)
         except IOError as err:
-            print(_("Warning: File %s could not be opened: %s") % (filename, str(err)))
+            msg = _('Warning: File %s could not be opened: %s') % (filename, str(err))
+            print(msg)
+            self.warnings.append(msg)
 
         return False
 
@@ -398,7 +454,7 @@ class ODFinderApp:
         if self.console:
             self.recursive_search(None, None, self.options['path'])
         else:
-            Gtk.main()
+            super().run([sys.argv[0]])
 
 
 def parse_args():
@@ -432,7 +488,7 @@ def parse_args():
 
 
 def main():
-    locale.setlocale(locale.LC_ALL, '.'.join(locale.getdefaultlocale()))
+    locale.setlocale(locale.LC_ALL, '')
     ODFinderApp(parse_args()).run()
 
 
