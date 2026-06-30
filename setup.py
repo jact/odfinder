@@ -24,6 +24,8 @@ import configparser
 # Python 3.12 compatibility for stdeb
 if not hasattr(configparser, 'SafeConfigParser'):
     configparser.SafeConfigParser = configparser.ConfigParser
+if not hasattr(configparser.ConfigParser, 'readfp'):
+    configparser.ConfigParser.readfp = configparser.ConfigParser.read_file
 
 from setuptools import setup
 from distutils.command.build import build
