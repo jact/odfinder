@@ -14,11 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -29,14 +24,13 @@ jobs:
             gir1.2-gtk-4.0 \
             python3-gi \
             python3-gi-cairo \
+            python3-cairo \
+            python3-pytest \
+            python3-pytest-asyncio \
+            python3-pytest-cov \
+            python3-setuptools \
             xvfb \
             gettext
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pycairo PyGObject pytest pytest-asyncio pytest-cov
-          pip install .
-
       - name: Run tests under Xvfb
-        run: xvfb-run python -m pytest
+        run: xvfb-run python3 -m pytest
