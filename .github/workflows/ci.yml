@@ -29,7 +29,8 @@ jobs:
             gir1.2-gtk-4.0 \
             python3-gi \
             python3-gi-cairo \
-            xvfb
+            xvfb \
+            gettext
 
       - name: Install Python dependencies
         run: |

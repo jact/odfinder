@@ -33,7 +33,8 @@ jobs:
             xvfb \
             debhelper \
             dh-python \
-            python3-all
+            python3-all \
+            gettext
 
       - name: Install Python dependencies
         run: |
