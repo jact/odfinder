@@ -19,6 +19,11 @@ import os
 import sys
 import glob
 import subprocess
+import configparser
+
+# Python 3.12 compatibility for stdeb
+if not hasattr(configparser, 'SafeConfigParser'):
+    configparser.SafeConfigParser = configparser.ConfigParser
 
 from setuptools import setup
 from distutils.command.build import build
