@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgirepository1.0-dev \
+            libcairo2-dev \
+            pkg-config \
+            gir1.2-gtk-4.0 \
+            python3-gi \
+            python3-gi-cairo \
+            xvfb
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pycairo PyGObject pytest pytest-asyncio pytest-cov
+          pip install .
+
+      - name: Run tests under Xvfb
+        run: xvfb-run python -m pytest
